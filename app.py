@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -18,10 +18,45 @@ class Todo(db.Model):
         return '<Task  %r>' % self.id
 
 
-@app.route('/')
+@app.route('/', methods=['POST', 'GIT'])
 def index():
-    return render_template('index.html')
+    if request.method == 'POST':
+        task_content = request.form['content']
+        new_task = Todo(content=task_content)
+        try:
+            db.session.add(new_task)
+            db.session.commit()
+            return redirect('/')
+        except:
+            return 'there was an issue adding the data'
 
-#what us this
+    else:
+        tasks = Todo.query.order_by(Todo.date_createde).all()
+        return render_template('index.html', tasks=tasks)
+
+
+@app.route('/delete/<int:id>')
+def delete(id):
+    task_to_delete = Todo.query.get_or_404(id)
+
+    try:
+        db.session.delete(task_to_delete)
+        db.session.commit()
+        return redirect('/')
+    except:
+        return 'there was an issue adding the data'
+
+@app.route('/update/<int:id>')
+def update(id):
+    task_to_delete = Todo.query.get_or_404(id)
+
+    try:
+        db.session.delete(task_to_delete)
+        db.session.commit()
+        return redirect('/')
+    except:
+        return 'there was an issue adding the data'
+
+
 if __name__ == '__main__':
     app.run(debug=True)
